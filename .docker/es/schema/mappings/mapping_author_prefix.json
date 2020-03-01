@@ -1,0 +1,39 @@
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "custom_analyzer": {
+          "type": "custom",
+          "char_filter": [
+            "icu_normalizer",
+            "kuromoji_iteration_mark"
+          ],
+          "tokenizer": "keyword",
+          "filter": "engram"
+        }
+      },
+      "filter": {
+        "engram": {
+          "type": "edgeNGram",
+          "min_gram": 1,
+          "max_gram": 200
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "id": {
+        "type": "long"
+      },
+      "name": {
+        "type": "text",
+        "analyzer": "custom_analyzer"
+      },
+      "name_kana": {
+        "type": "text",
+        "analyzer": "custom_analyzer"
+      }
+    }
+  }
+}

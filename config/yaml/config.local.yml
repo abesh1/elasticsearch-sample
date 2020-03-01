@@ -1,0 +1,12 @@
+server:
+  read_timeout: 15000 # Millisecond
+  read_header_timeout: 15000 # Millisecond
+  write_timeout: 15000 # Millisecond
+  idle_timeout: 40000 # Millisecond
+  max_conns: 1024
+  enable_keep_alive: true
+  concurrency: 262144 # 256 * 1024
+
+elasticsearch:
+  store:
+    url:

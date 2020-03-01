@@ -1,0 +1,6 @@
+.idea
+.docker/es/data
+config/statik
+mecab-ipadic-neologd
+
+config/yaml/config.prod.yml

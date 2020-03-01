@@ -1,0 +1,33 @@
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "custom_analyzer": {
+          "type": "custom",
+          "char_filter": [
+            "icu_normalizer",
+            "kuromoji_iteration_mark"
+          ],
+          "tokenizer": "kuromoji_custom",
+          "filter": [
+            "kuromoji_readingform",
+            "engram"
+          ]
+        }
+      },
+      "filter": {
+        "engram": {
+          "type": "edgeNGram",
+          "min_gram": 1,
+          "max_gram": 200
+        }
+      },
+      "tokenizer":{
+        "kuromoji_custom": {
+          "type": "kuromoji_tokenizer",
+          "mode": "normal"
+        }
+      }
+    }
+  }
+}

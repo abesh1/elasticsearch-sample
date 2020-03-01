@@ -1,0 +1,46 @@
+{
+  "settings": {
+    "analysis": {
+      "normalizer": {
+        "custom_normalizer": {
+          "type": "custom",
+          "char_filter": [
+            "icu_normalizer",
+            "kuromoji_iteration_mark"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "name": {
+        "type": "keyword",
+        "normalizer": "custom_normalizer"
+      },
+      "name_kana": {
+        "type": "keyword",
+        "normalizer": "custom_normalizer"
+      },
+      "authors": {
+        "type": "nested",
+        "properties": {
+          "id": {
+            "type": "long"
+          },
+          "name": {
+            "type": "keyword",
+            "normalizer": "custom_normalizer"
+          },
+          "name_kana": {
+            "type": "keyword",
+            "normalizer": "custom_normalizer"
+          },
+          "type": {
+            "type": "keyword"
+          }
+        }
+      }
+    }
+  }
+}
