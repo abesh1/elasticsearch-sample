@@ -8,7 +8,7 @@ seed: gen ## Insert Seed
 	@go run main.go seed --env=local
 
 .PHONY: local_build
-build: gen ## Go Build
+local_build: gen ## Go Build
 	@go build -o $(GOPATH)/bin/elasticsearch_sample main.go
 
 .PHONY: build
