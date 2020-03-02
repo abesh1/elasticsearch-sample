@@ -36,13 +36,14 @@ references:
 jobs:
   build:
     <<: *defaults
-    working_directory: /go/src/github.com/nagisa-inc/jellyfish-api
+    working_directory: /go/src/github.com/jiro94/elasticsearch-sample
     docker:
       - image: golang:1.13
         environment:
           GO111MODULE: "on"
     steps:
       - run: apt-get update && apt-get -y install gettext-base
+      - run: apt-get -y install libmecab2 libmecab-dev mecab mecab-ipadic mecab-ipadic-utf8 mecab-utils
       - checkout
       - restore_cache:
           key: mod-{{ .Branch }}-{{ checksum "go.mod" }}
