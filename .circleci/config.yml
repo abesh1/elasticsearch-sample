@@ -41,8 +41,8 @@ jobs:
       - image: golang:1.13.4-stretch
         environment:
           GO111MODULE: "on"
-          CGO_LDFLAGS: "`mecab-config --libs`"
-          CGO_CFLAGS: "-I`mecab-config --inc-dir`"
+          CGO_LDFLAGS: "-L/path/to/lib -lmecab -lstdc++"
+          CGO_CFLAGS: "-I/path/to/include"
     steps:
       - run: apt-get update && apt-get -y install gettext-base
       - run: apt-get -y install libmecab2 libmecab-dev mecab mecab-ipadic mecab-ipadic-utf8 mecab-utils
