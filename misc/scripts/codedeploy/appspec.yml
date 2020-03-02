@@ -1,0 +1,10 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /usr/local/bin/
+hooks:
+  ApplicationStart:
+    - location: start_app.sh
+      timeout: 180
+      runas: root

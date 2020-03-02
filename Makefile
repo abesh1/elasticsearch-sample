@@ -10,3 +10,16 @@ seed: gen ## Insert Seed
 .PHONY: build
 build: gen ## Go Build
 	@go build -o $(GOPATH)/bin/elasticsearch_sample main.go
+
+.PHONY: bundle
+bundle: ## Install vender library
+	@go mod download
+	@go mod verify
+
+.PHONY: archive
+archive: ## Archive binary file...
+	@sh misc/scripts/ci/archive.sh
+
+.PHONY: deploy
+deploy: ## Deploy
+	@sh misc/scripts/ci/deploy.sh

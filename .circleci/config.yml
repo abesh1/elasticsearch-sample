@@ -1,0 +1,84 @@
+version: 2
+
+defaults: &defaults
+  environment:
+    TZ: /usr/share/zoneinfo/Asia/Tokyo
+    AWS_DEFAULT_REGION: ap-northeast-1
+
+references:
+  workspace_root: &workspace_root
+    /tmp/workspace
+
+  save_artifacts: &save_artifacts
+    run:
+      name: save artifacts
+      command: |
+        mkdir -p /tmp/workspace/build/
+        cp -Rf build/archive /tmp/workspace/build/
+
+  persist_artifacts: &persist_artifacts
+    persist_to_workspace:
+      root: *workspace_root
+      paths:
+        - build
+
+  attach_artifacts: &attach_artifacts
+    attach_workspace:
+      at: *workspace_root
+
+  copy_artifacts: &copy_artifacts
+    run:
+      name: copy artifacts
+      command: |
+        mkdir -p build
+        cp -Rf /tmp/workspace/build/ ./
+
+jobs:
+  build:
+    <<: *defaults
+    working_directory: /go/src/github.com/nagisa-inc/jellyfish-api
+    docker:
+      - image: golang:1.13
+        environment:
+          GO111MODULE: "on"
+    steps:
+      - run: apt-get update && apt-get -y install gettext-base
+      - checkout
+      - restore_cache:
+          key: mod-{{ .Branch }}-{{ checksum "go.mod" }}
+      - run:
+          name: vendoring
+          command: make bundle
+      - save_cache:
+          key: mod-{{ .Branch }}-{{ checksum "go.mod" }}
+          paths:
+            - /go/pkg/mod/cache
+      - run: make build
+      - run: make archive
+      - *save_artifacts
+      - *persist_artifacts
+      - run: ls -al /tmp/workspace
+      - run: ls -al
+  deploy:
+    <<: *defaults
+    machine: true
+    steps:
+      - checkout
+      - run: aws --version
+      - run: ls -al
+      - *attach_artifacts
+      - run: ls -al /tmp/workspace
+      - *copy_artifacts
+      - run: ls -al ./
+      - run: ls -al ./build/
+      - run: make deploy
+
+workflows:
+  version: 2
+  build-workflow:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+
