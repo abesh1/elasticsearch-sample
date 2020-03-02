@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # app
-APP_BIN=elasticsarch_sample
+APP_BIN=elasticsearch_sample
 
 # app
 ROOT_DIR=$(cd $(dirname $0)/../../.. && pwd)
