@@ -27,4 +27,4 @@ APP_TAR_FILE=${APP_BIN}-${TAR_FILE_SUFFIX}
 S3_PATH_SUFFIX=${PATH_BRANCH}/${SHORT_DATE}/${LONG_DATE}-${SHORT_COMMIT}
 
 # s3 bucket
-S3_BUCKET=elasticsarch_sample_deploy
+S3_BUCKET=elasticsarch-sample-deploy

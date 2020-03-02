@@ -16,6 +16,6 @@ s3://${S3_BUCKET}/${S3_KEY}
 aws deploy create-deployment \
 --application-name ${APP_BIN} \
 --deployment-group-name Dev \
---deployment-config-name CodeDeployDefault.OneAtATime \
+--deployment-config-name CodeDeployDefault.AllAtOnce \
 --file-exists-behavior OVERWRITE \
 --s3-location bucket=${S3_BUCKET},key=${S3_KEY},bundleType=tgz
