@@ -7,13 +7,9 @@ gen: ## Go Generate
 seed: gen ## Insert Seed
 	@go run main.go seed --env=local
 
-.PHONY: local_build
-local_build: gen ## Go Build
-	@go build -o $(GOPATH)/bin/elasticsearch_sample main.go
-
 .PHONY: build
 build: gen ## Go Build
-	@sh misc/scripts/ci/build.sh
+	@go build -o $(GOPATH)/bin/elasticsearch_sample main.go
 
 .PHONY: bundle
 bundle: ## Install vender library
