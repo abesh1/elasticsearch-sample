@@ -387,6 +387,75 @@ func (r repo) GetV5PartialESSearchSuggestion(ctx context.Context, req entityreq.
 	return
 }
 
+func (r repo) GetV5PrefixAndPartialESSearchSuggestion(ctx context.Context, req entityreq.ProductSearch) (list entity.MultiESObjectList, err error) {
+	if req.Keyword == "" {
+		return
+	}
+	if req.Index == "" {
+		return
+	}
+
+	productBQ := elastic.NewBoolQuery()
+	authorBQ := elastic.NewBoolQuery()
+	for _, v := range queryToSlice(req.Keyword) {
+		productBQ2 := elastic.NewBoolQuery()
+		authorBQ2 := elastic.NewBoolQuery()
+		nq := normalizeQuery(v)
+		nameQ := elastic.NewTermQuery("name", nq).Boost(100)
+		nameWildQ := elastic.NewWildcardQuery("name", "*"+nq+"*").Boost(50)
+		productBQ2.Should(nameQ, nameWildQ)
+		authorBQ2.Should(nameQ, nameWildQ)
+		if nkq := normalizeKanaQuery(v); nkq != "" {
+			nameKanaQ := elastic.NewTermQuery("name_kana", nkq).Boost(80)
+			nameKanaWildQ := elastic.NewTermQuery("name_kana", "*"+nkq+"*").Boost(30)
+			productBQ2.Should(nameKanaQ, nameKanaWildQ)
+			authorBQ2.Should(nameKanaQ, nameKanaWildQ)
+		}
+		productBQ.Must(productBQ2)
+		authorBQ.Must(authorBQ2)
+	}
+
+	ms := r.ES.Session("store").MultiSearch()
+	ms.Add(
+		elastic.NewSearchRequest().
+			Index("v5_prefix").
+			Size(int(req.Limit)).
+			Query(productBQ).
+			FetchSourceIncludeExclude([]string{"id", "name"}, nil),
+		elastic.NewSearchRequest().
+			Index("authors_prefix").
+			Size(int(req.Limit)).
+			Query(authorBQ).
+			FetchSourceIncludeExclude([]string{"id", "name"}, nil),
+	)
+
+	multiRes, err := ms.Do(ctx)
+	if err != nil {
+		return
+	}
+	for idx, res := range multiRes.Responses {
+		switch idx {
+		case 0:
+			// product
+			list.Product = make(entity.ESObjectList, len(res.Hits.Hits))
+			for i, hit := range res.Hits.Hits {
+				if err = json.Unmarshal(hit.Source, &list.Product[i]); err != nil {
+					return
+				}
+			}
+		case 1:
+			// author
+			list.Author = make(entity.ESObjectList, len(res.Hits.Hits))
+			for i, hit := range res.Hits.Hits {
+				if err = json.Unmarshal(hit.Source, &list.Author[i]); err != nil {
+					return
+				}
+			}
+		}
+	}
+	return
+}
+
 func (r repo) InsertSearchSeed(ctx context.Context, list entity.ESProductList) error {
 	sess := r.ES.Session("store")
 

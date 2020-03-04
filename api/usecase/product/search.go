@@ -60,6 +60,8 @@ func (s serv) GetSearchSuggestion(ctx context.Context, req entityreq.ProductSear
 		res, err = s.getV5PrefixSearchSuggestion(ctx, req)
 	case "v5_partial":
 		res, err = s.getV5PartialSearchSuggestion(ctx, req)
+	case "v5_prefix_partial":
+		res, err = s.getV5PrefixAndPartialSearchSuggestion(ctx, req)
 	}
 	return
 }
@@ -135,6 +137,37 @@ func (s serv) getV5PrefixSearchSuggestion(ctx context.Context, req entityreq.Pro
 
 func (s serv) getV5PartialSearchSuggestion(ctx context.Context, req entityreq.ProductSearch) (interface{}, error) {
 	multiList, err := s.repo.GetV5PartialESSearchSuggestion(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	authors := make(entityres.SuggestionAuthorList, 0, len(multiList.Author))
+	for _, v := range multiList.Author {
+		authors = append(authors, entityres.SuggestionAuthor{
+			ID:   v.ID,
+			Name: v.Name,
+		})
+	}
+
+	products := make(entityres.SuggestionProductList, 0, len(multiList.Product))
+	for _, v := range multiList.Product {
+		products = append(products, entityres.SuggestionProduct{
+			ID:   v.ID,
+			Name: v.Name,
+		})
+	}
+
+	res := entityres.Suggestion{
+		Query:   req.Keyword,
+		Author:  usecase.NewItems(authors),
+		Product: usecase.NewItems(products),
+	}
+
+	return res, nil
+}
+
+func (s serv) getV5PrefixAndPartialSearchSuggestion(ctx context.Context, req entityreq.ProductSearch) (interface{}, error) {
+	multiList, err := s.repo.GetV5PrefixAndPartialESSearchSuggestion(ctx, req)
 	if err != nil {
 		return nil, err
 	}
