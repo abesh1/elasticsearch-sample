@@ -7,9 +7,11 @@
   <body>
     <div id="app">
       <p>
+        検索キーワード：
         <input type="text" v-model="keyword">
       </p>
       <p>
+        検索方式：
         <select v-model="selected">
           <option v-for="option in options" v-bind:value="option.value">
             {{ option.text }}
@@ -19,6 +21,7 @@
       <p>
         {{ message }}
       </p>
+      <div>検索結果：</div>
       <ul>
         <strong>作品</strong>
         <li v-for="title in titles">
