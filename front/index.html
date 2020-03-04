@@ -6,7 +6,30 @@
   </head>
   <body>
     <div id="app">
-      
+      <p>
+        <input type="text" v-model="keyword">
+      </p>
+      <p>
+        <select v-model="selected">
+          <option v-for="option in options" v-bind:value="option.value">
+            {{ option.text }}
+          </option>
+        </select>
+      </p>
+      <p>
+        {{ message }}
+      </p>
+      <ul>
+        <strong>作品</strong>
+        <li v-for="title in titles">
+          {{ title.name }}
+        </li>
+        <br>
+        <strong>著者</strong>
+        <li v-for="author in authors">
+          {{ author.name }}
+        </li>
+      </ul>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>

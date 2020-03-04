@@ -26,5 +26,7 @@ func Register(r *httprouter.Router, s service.Product) {
 }
 
 func encodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST,GET,PUT,DELETE")
 	return json.NewEncoder(w).Encode(response)
 }
