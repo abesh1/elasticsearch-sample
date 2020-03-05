@@ -54,7 +54,7 @@ func (s serv) getV5PartialESSearch(ctx context.Context, req entityreq.ProductSea
 	return usecase.NewItems(list), nil
 }
 
-func (s serv) getV5PrefixAndPartialSearch(ctx context.Context, req entityreq.ProductSearch) (interface{}, error) {
+func (s serv) getV5PrefixAndPartialESSearch(ctx context.Context, req entityreq.ProductSearch) (interface{}, error) {
 	list, err := s.repo.GetV5PrefixAndPartialESSearch(ctx, req)
 	if err != nil {
 		return nil, err
