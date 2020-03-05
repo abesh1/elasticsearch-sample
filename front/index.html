@@ -3,36 +3,114 @@
   <head>
     <meta charset="utf-8">
     <title>検索サンプル</title>
+    <style>
+      table {
+        border-collapse: collapse;
+      }
+      td {
+        border: solid 1px;
+        vertical-align: top;
+        padding: 0.5em;
+      }
+      tr {
+        border: solid 1px;
+        padding: 0.5em;
+      }
+      th {
+        border: solid 1px;
+        padding: 0.5em;
+      }
+    </style>
   </head>
   <body>
     <div id="app">
       <p>
-        検索キーワード：
-        <input type="text" v-model="keyword">
+        <form @submit.prevent="getSearch">
+          <input type="text" v-model="keyword" placeholder="キーワードを入力">
+          <button type="button" v-on:click="getSearch">検索</button>
+        </form>
       </p>
       <p>
-        検索方式：
-        <select v-model="selected">
-          <option v-for="option in options" v-bind:value="option.value">
-            {{ option.text }}
-          </option>
-        </select>
+        最大表示件数：
+        <input type="text" v-model="limit">
       </p>
       <p>
         {{ message }}
       </p>
-      <div>検索結果：</div>
-      <ul>
-        <strong>作品</strong>
-        <li v-for="title in titles">
-          {{ title.name }}
-        </li>
-        <br>
-        <strong>著者</strong>
-        <li v-for="author in authors">
-          {{ author.name }}
-        </li>
-      </ul>
+      <p>
+        <table>
+          {{ searchMethod }}
+          <tr>
+            <th></th>
+            <th>前文一致</th>
+            <th>部分一致</th>
+            <th>前文一致＋部分一致</th>
+            <th>現行Web</th>
+          </tr>
+          <tr>
+            <th>作品</th>
+            <td>
+              <ul>
+                <li v-for="title in prefix.titles">
+                  {{ title.name }}
+                </li>
+              </ul>
+            </td>
+            <td>
+              <ul>
+                <li v-for="title in partial.titles">
+                  {{ title.name }}
+                </li>
+              </ul>
+            </td>
+            <td>
+              <ul>
+                <li v-for="title in prefixAndPartial.titles">
+                  {{ title.name }}
+                </li>
+              </ul>
+            </td>
+            <td>
+              <ul>
+                <li v-for="title in web.titles">
+                  {{ title.name }}
+                </li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <th>著者</th>
+            <td>
+              <ul>
+                <li v-for="author in prefix.authors">
+                  {{ author.name }}
+                </li>
+              </ul>
+            </td>
+            <td>
+              <ul>
+                <li v-for="author in partial.authors">
+                  {{ author.name }}
+                </li>
+              </ul>
+            </td>
+            <td>
+              <ul>
+                <li v-for="author in prefixAndPartial.authors">
+                  {{ author.name }}
+                </li>
+              </ul>
+            </td>
+            <td>
+              <ul>
+                <li v-for="author in web.authors">
+                  {{ author.name }}
+                </li>
+              </ul>
+            </td>
+          </tr>
+        </table>
+      </p>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
