@@ -12,6 +12,7 @@ type Product interface {
 	GetWebESSearch(context.Context, entityreq.ProductSearch) (entity.ESProductList, error)
 	GetV5PrefixESSearch(context.Context, entityreq.ProductSearch) (entity.ESProductList, error)
 	GetV5PartialESSearch(context.Context, entityreq.ProductSearch) (entity.ESProductList, error)
+	GetV5PrefixAndPartialESSearch(context.Context, entityreq.ProductSearch) (entity.ESProductList, error)
 	GetWebESSearchSuggestion(context.Context, entityreq.ProductSearch) (entity.MultiESProductList, error)
 	GetV5PrefixESSearchSuggestion(context.Context, entityreq.ProductSearch) (entity.MultiESObjectList, error)
 	GetV5PartialESSearchSuggestion(context.Context, entityreq.ProductSearch) (entity.MultiESObjectList, error)

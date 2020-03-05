@@ -34,13 +34,14 @@ func (r repo) GetWebESSearch(ctx context.Context, req entityreq.ProductSearch) (
 		elastic.NewNestedQuery("authors", elastic.NewWildcardQuery("authors.name", "*"+nq+"*").Boost(50)),
 	)
 	for _, v := range queryToSlice(req.Keyword) {
-		nq := normalizeQuery(v)
-		bq.Should(
-			elastic.NewPrefixQuery("name", nq).Boost(100),
-			elastic.NewWildcardQuery("name", "*"+nq+"*").Boost(50),
-			elastic.NewNestedQuery("authors", elastic.NewPrefixQuery("authors.name", nq).Boost(100)),
-			elastic.NewNestedQuery("authors", elastic.NewWildcardQuery("authors.name", "*"+nq+"*").Boost(50)),
-		)
+		if nq := normalizeQuery(v); nq != "" {
+			bq.Should(
+				elastic.NewPrefixQuery("name", nq).Boost(100),
+				elastic.NewWildcardQuery("name", "*"+nq+"*").Boost(50),
+				elastic.NewNestedQuery("authors", elastic.NewPrefixQuery("authors.name", nq).Boost(100)),
+				elastic.NewNestedQuery("authors", elastic.NewWildcardQuery("authors.name", "*"+nq+"*").Boost(50)),
+			)
+		}
 		if nkq := normalizeKanaQuery(v); nkq != "" {
 			bq.Should(
 				elastic.NewPrefixQuery("name_kana", nkq).Boost(80),
@@ -86,15 +87,16 @@ func (r repo) GetV5PrefixESSearch(ctx context.Context, req entityreq.ProductSear
 	bq := elastic.NewBoolQuery()
 	for _, v := range queryToSlice(req.Keyword) {
 		kq := elastic.NewBoolQuery()
-		nq := normalizeQuery(v)
-		kq.Should(
-			elastic.NewWildcardQuery("name", "*"+nq+"*"),
-			elastic.NewNestedQuery("authors", elastic.NewWildcardQuery("authors.name", "*"+nq+"*")),
-		)
+		if nq := normalizeQuery(v); nq != "" {
+			kq.Should(
+				elastic.NewTermQuery("name", nq).Boost(100),
+				elastic.NewNestedQuery("authors", elastic.NewTermQuery("authors.name", nq)).Boost(100),
+			)
+		}
 		if nkq := normalizeKanaQuery(v); nkq != "" {
 			kq.Should(
-				elastic.NewWildcardQuery("name_kana", "*"+nkq+"*"),
-				elastic.NewNestedQuery("authors", elastic.NewWildcardQuery("authors.name_kana", "*"+nkq+"*")),
+				elastic.NewTermQuery("name_kana", nkq).Boost(80),
+				elastic.NewNestedQuery("authors", elastic.NewTermQuery("authors.name_kana", nkq)).Boost(80),
 			)
 		}
 		bq.Must(kq)
@@ -135,15 +137,16 @@ func (r repo) GetV5PartialESSearch(ctx context.Context, req entityreq.ProductSea
 	bq := elastic.NewBoolQuery()
 	for _, v := range queryToSlice(req.Keyword) {
 		kq := elastic.NewBoolQuery()
-		nq := normalizeQuery(v)
-		kq.Should(
-			elastic.NewMatchPhraseQuery("name", nq),
-			elastic.NewNestedQuery("authors", elastic.NewMatchPhraseQuery("authors.name", nq)),
-		)
+		if nq := normalizeQuery(v); nq != "" {
+			kq.Should(
+				elastic.NewMatchPhraseQuery("name", nq).Boost(100),
+				elastic.NewNestedQuery("authors", elastic.NewMatchPhraseQuery("authors.name", nq)).Boost(100),
+			)
+		}
 		if nkq := normalizeKanaQuery(v); nkq != "" {
 			kq.Should(
-				elastic.NewMatchPhraseQuery("name_kana", nkq),
-				elastic.NewNestedQuery("authors", elastic.NewMatchPhraseQuery("authors.name_kana", nkq)),
+				elastic.NewMatchPhraseQuery("name_kana", nkq).Boost(80),
+				elastic.NewNestedQuery("authors", elastic.NewMatchPhraseQuery("authors.name_kana", nkq)).Boost(80),
 			)
 		}
 		bq.Must(kq)
@@ -152,6 +155,60 @@ func (r repo) GetV5PartialESSearch(ctx context.Context, req entityreq.ProductSea
 	res, err := r.ES.Session("store").
 		Search().
 		Index("v5_partial").
+		Query(bq).
+		From(0).
+		Size(int(req.Limit)).
+		Pretty(true).
+		Do(ctx)
+	if err != nil {
+		return
+	}
+	list2 := make(entity.ESProductList, 0, len(res.Hits.Hits))
+	for _, hit := range res.Hits.Hits {
+		var d entity.ESProduct
+		if err = json.Unmarshal(hit.Source, &d); err != nil {
+			return
+		}
+		list2 = append(list2, d)
+	}
+	list = list2
+
+	return
+}
+
+func (r repo) GetV5PrefixAndPartialESSearch(ctx context.Context, req entityreq.ProductSearch) (list entity.ESProductList, err error) {
+	if req.Keyword == "" {
+		return
+	}
+	if req.Index == "" {
+		return
+	}
+
+	bq := elastic.NewBoolQuery()
+	for _, v := range queryToSlice(req.Keyword) {
+		kq := elastic.NewBoolQuery()
+		if nq := normalizeQuery(v); nq != "" {
+			kq.Should(
+				elastic.NewTermQuery("name", nq).Boost(100),
+				elastic.NewWildcardQuery("name", "*"+nq+"*").Boost(50),
+				elastic.NewNestedQuery("authors", elastic.NewTermQuery("authors.name", nq).Boost(100)),
+				elastic.NewNestedQuery("authors", elastic.NewWildcardQuery("authors.name", "*"+nq+"*").Boost(50)),
+			)
+		}
+		if nkq := normalizeKanaQuery(v); nkq != "" {
+			kq.Should(
+				elastic.NewTermQuery("name_kana", nkq).Boost(80),
+				elastic.NewWildcardQuery("name_kana", "*"+nkq+"*").Boost(30),
+				elastic.NewNestedQuery("authors", elastic.NewTermQuery("authors.name_kana", nkq).Boost(80)),
+				elastic.NewNestedQuery("authors", elastic.NewWildcardQuery("authors.name_kana", "*"+nkq+"*").Boost(30)),
+			)
+		}
+		bq.Must(kq)
+	}
+
+	res, err := r.ES.Session("store").
+		Search().
+		Index("v5_prefix").
 		Query(bq).
 		From(0).
 		Size(int(req.Limit)).
@@ -185,15 +242,16 @@ func (r repo) GetWebESSearchSuggestion(ctx context.Context, req entityreq.Produc
 	authorBQ := elastic.NewBoolQuery()
 
 	for _, v := range queryToSlice(req.Keyword) {
-		nq := normalizeQuery(v)
-		productBQ.Should(
-			elastic.NewPrefixQuery("name", nq).Boost(100),
-			elastic.NewWildcardQuery("name", "*"+nq+"*").Boost(50),
-		)
-		authorBQ.Should(
-			elastic.NewNestedQuery("authors", elastic.NewPrefixQuery("authors.name", nq).Boost(100)),
-			elastic.NewNestedQuery("authors", elastic.NewWildcardQuery("authors.name", "*"+nq+"*").Boost(50)),
-		)
+		if nq := normalizeQuery(v); nq != "" {
+			productBQ.Should(
+				elastic.NewPrefixQuery("name", nq).Boost(100),
+				elastic.NewWildcardQuery("name", "*"+nq+"*").Boost(50),
+			)
+			authorBQ.Should(
+				elastic.NewNestedQuery("authors", elastic.NewPrefixQuery("authors.name", nq).Boost(100)),
+				elastic.NewNestedQuery("authors", elastic.NewWildcardQuery("authors.name", "*"+nq+"*").Boost(50)),
+			)
+		}
 		if nkq := normalizeKanaQuery(v); nkq != "" {
 			productBQ.Should(
 				elastic.NewPrefixQuery("name_kana", nkq).Boost(80),
@@ -260,20 +318,15 @@ func (r repo) GetV5PrefixESSearchSuggestion(ctx context.Context, req entityreq.P
 	for _, v := range queryToSlice(req.Keyword) {
 		productBQ2 := elastic.NewBoolQuery()
 		authorBQ2 := elastic.NewBoolQuery()
-		nq := normalizeQuery(v)
-		nameQ := elastic.NewTermQuery("name", nq).Boost(100)
-		//nameWildQ := elastic.NewWildcardQuery("name", "*"+nq+"*").Boost(50)
-		productBQ2.Should(nameQ)
-		//productBQ2.Should(nameQ, nameWildQ)
-		authorBQ2.Should(nameQ)
-		//authorBQ2.Should(nameQ, nameWildQ)
+		if nq := normalizeQuery(v); nq != "" {
+			nameQ := elastic.NewTermQuery("name", nq).Boost(100)
+			productBQ2.Should(nameQ)
+			authorBQ2.Should(nameQ)
+		}
 		if nkq := normalizeKanaQuery(v); nkq != "" {
 			nameKanaQ := elastic.NewTermQuery("name_kana", nkq).Boost(80)
-			//nameKanaWildQ := elastic.NewTermQuery("name_kana", "*"+nkq+"*").Boost(30)
 			productBQ2.Should(nameKanaQ)
-			//productBQ2.Should(nameKanaQ, nameKanaWildQ)
 			authorBQ2.Should(nameKanaQ)
-			//authorBQ2.Should(nameKanaQ, nameKanaWildQ)
 		}
 		productBQ.Must(productBQ2)
 		authorBQ.Must(authorBQ2)
@@ -333,10 +386,11 @@ func (r repo) GetV5PartialESSearchSuggestion(ctx context.Context, req entityreq.
 	for _, v := range queryToSlice(req.Keyword) {
 		productBQ2 := elastic.NewBoolQuery()
 		authorBQ2 := elastic.NewBoolQuery()
-		nq := normalizeQuery(v)
-		nameQ := elastic.NewMatchPhraseQuery("name", nq).Boost(100)
-		productBQ2.Should(nameQ)
-		authorBQ2.Should(nameQ)
+		if nq := normalizeQuery(v); nq != "" {
+			nameQ := elastic.NewMatchPhraseQuery("name", nq).Boost(100)
+			productBQ2.Should(nameQ)
+			authorBQ2.Should(nameQ)
+		}
 		if nkq := normalizeKanaQuery(v); nkq != "" {
 			nameKanaQ := elastic.NewMatchPhraseQuery("name_kana", nkq).Boost(80)
 			productBQ2.Should(nameKanaQ)
@@ -400,11 +454,12 @@ func (r repo) GetV5PrefixAndPartialESSearchSuggestion(ctx context.Context, req e
 	for _, v := range queryToSlice(req.Keyword) {
 		productBQ2 := elastic.NewBoolQuery()
 		authorBQ2 := elastic.NewBoolQuery()
-		nq := normalizeQuery(v)
-		nameQ := elastic.NewTermQuery("name", nq).Boost(100)
-		nameWildQ := elastic.NewWildcardQuery("name", "*"+nq+"*").Boost(50)
-		productBQ2.Should(nameQ, nameWildQ)
-		authorBQ2.Should(nameQ, nameWildQ)
+		if nq := normalizeQuery(v); nq != "" {
+			nameQ := elastic.NewTermQuery("name", nq).Boost(100)
+			nameWildQ := elastic.NewWildcardQuery("name", "*"+nq+"*").Boost(50)
+			productBQ2.Should(nameQ, nameWildQ)
+			authorBQ2.Should(nameQ, nameWildQ)
+		}
 		if nkq := normalizeKanaQuery(v); nkq != "" {
 			nameKanaQ := elastic.NewTermQuery("name_kana", nkq).Boost(80)
 			nameKanaWildQ := elastic.NewTermQuery("name_kana", "*"+nkq+"*").Boost(30)

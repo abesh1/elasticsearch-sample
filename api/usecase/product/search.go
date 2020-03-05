@@ -19,6 +19,8 @@ func (s serv) GetSearch(ctx context.Context, req entityreq.ProductSearch) (res i
 		res, err = s.getV5PrefixESSearch(ctx, req)
 	case "v5_partial":
 		res, err = s.getV5PartialESSearch(ctx, req)
+	case "v5_prefix_partial":
+		res, err = s.getV5PrefixAndPartialESSearch(ctx, req)
 	default:
 		return
 	}
@@ -36,6 +38,15 @@ func (s serv) getWebESSearch(ctx context.Context, req entityreq.ProductSearch) (
 
 func (s serv) getV5PrefixESSearch(ctx context.Context, req entityreq.ProductSearch) (interface{}, error) {
 	list, err := s.repo.GetV5PrefixESSearch(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return usecase.NewItems(list), nil
+}
+
+func (s serv) getV5PartialESSearch(ctx context.Context, req entityreq.ProductSearch) (interface{}, error) {
+	list, err := s.repo.GetV5PartialESSearch(ctx, req)
 	if err != nil {
 		return nil, err
 	}
