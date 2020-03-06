@@ -57,7 +57,7 @@ func (r repo) GetWebESSearch(ctx context.Context, req entityreq.ProductSearch) (
 		Index("web").
 		Query(bq).
 		From(0).
-		//Size(int(req.Limit)).
+		Size(int(req.Limit)).
 		Pretty(true).
 		Do(ctx)
 	if err != nil {
@@ -107,7 +107,7 @@ func (r repo) GetV5PrefixESSearch(ctx context.Context, req entityreq.ProductSear
 		Index("v5_prefix").
 		Query(bq).
 		From(0).
-		//Size(int(req.Limit)).
+		Size(int(req.Limit)).
 		Pretty(true).
 		Do(ctx)
 	if err != nil {
@@ -157,7 +157,7 @@ func (r repo) GetV5PartialESSearch(ctx context.Context, req entityreq.ProductSea
 		Index("v5_partial").
 		Query(bq).
 		From(0).
-		//Size(int(req.Limit)).
+		Size(int(req.Limit)).
 		Pretty(true).
 		Do(ctx)
 	if err != nil {
@@ -211,7 +211,7 @@ func (r repo) GetV5PrefixAndPartialESSearch(ctx context.Context, req entityreq.P
 		Index("v5_prefix").
 		Query(bq).
 		From(0).
-		//Size(int(req.Limit)).
+		Size(int(req.Limit)).
 		Pretty(true).
 		Do(ctx)
 	if err != nil {
@@ -268,12 +268,12 @@ func (r repo) GetWebESSearchSuggestion(ctx context.Context, req entityreq.Produc
 	ms.Add(
 		elastic.NewSearchRequest().
 			Index("web").
-			//Size(int(req.Limit)).
+			Size(int(req.Limit)).
 			Query(productBQ).
 			FetchSourceIncludeExclude([]string{"id", "name"}, nil),
 		elastic.NewSearchRequest().
 			Index("web").
-			//Size(int(req.Limit)).
+			Size(int(req.Limit)).
 			Query(authorBQ).
 			FetchSourceIncludeExclude([]string{"authors.id", "authors.name"}, nil),
 	)
@@ -336,12 +336,12 @@ func (r repo) GetV5PrefixESSearchSuggestion(ctx context.Context, req entityreq.P
 	ms.Add(
 		elastic.NewSearchRequest().
 			Index("v5_prefix").
-			//Size(int(req.Limit)).
+			Size(int(req.Limit)).
 			Query(productBQ).
 			FetchSourceIncludeExclude([]string{"id", "name"}, nil),
 		elastic.NewSearchRequest().
 			Index("authors_prefix").
-			//Size(int(req.Limit)).
+			Size(int(req.Limit)).
 			Query(authorBQ).
 			FetchSourceIncludeExclude([]string{"id", "name"}, nil),
 	)
@@ -404,12 +404,12 @@ func (r repo) GetV5PartialESSearchSuggestion(ctx context.Context, req entityreq.
 	ms.Add(
 		elastic.NewSearchRequest().
 			Index("v5_partial").
-			//Size(int(req.Limit)).
+			Size(int(req.Limit)).
 			Query(productBQ).
 			FetchSourceIncludeExclude([]string{"id", "name"}, nil),
 		elastic.NewSearchRequest().
 			Index("authors_partial").
-			//Size(int(req.Limit)).
+			Size(int(req.Limit)).
 			Query(authorBQ).
 			FetchSourceIncludeExclude([]string{"id", "name"}, nil),
 	)
@@ -474,12 +474,12 @@ func (r repo) GetV5PrefixAndPartialESSearchSuggestion(ctx context.Context, req e
 	ms.Add(
 		elastic.NewSearchRequest().
 			Index("v5_prefix").
-			//Size(int(req.Limit)).
+			Size(int(req.Limit)).
 			Query(productBQ).
 			FetchSourceIncludeExclude([]string{"id", "name"}, nil),
 		elastic.NewSearchRequest().
 			Index("authors_prefix").
-			//Size(int(req.Limit)).
+			Size(int(req.Limit)).
 			Query(authorBQ).
 			FetchSourceIncludeExclude([]string{"id", "name"}, nil),
 	)
