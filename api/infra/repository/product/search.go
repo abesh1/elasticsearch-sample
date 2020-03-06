@@ -462,7 +462,7 @@ func (r repo) GetV5PrefixAndPartialESSearchSuggestion(ctx context.Context, req e
 		}
 		if nkq := normalizeKanaQuery(v); nkq != "" {
 			nameKanaQ := elastic.NewTermQuery("name_kana", nkq).Boost(80)
-			nameKanaWildQ := elastic.NewTermQuery("name_kana", "*"+nkq+"*").Boost(30)
+			nameKanaWildQ := elastic.NewWildcardQuery("name_kana", "*"+nkq+"*").Boost(30)
 			productBQ2.Should(nameKanaQ, nameKanaWildQ)
 			authorBQ2.Should(nameKanaQ, nameKanaWildQ)
 		}
@@ -511,47 +511,8 @@ func (r repo) GetV5PrefixAndPartialESSearchSuggestion(ctx context.Context, req e
 	return
 }
 
-func (r repo) InsertSearchSeed(ctx context.Context, list entity.ESProductList) error {
-	sess := r.ES.Session("store")
-
-	bulkReq := sess.Bulk()
-	// v5_prefix
-	for _, v := range list {
-		bulkReq = bulkReq.Add(
-			elastic.NewBulkIndexRequest().
-				Index("v5_prefix").
-				Id(cast.ToString(v.ID)).
-				Doc(v),
-		)
-	}
-	// v5_partial
-	for _, v := range list {
-		bulkReq = bulkReq.Add(
-			elastic.NewBulkIndexRequest().
-				Index("v5_partial").
-				Id(cast.ToString(v.ID)).
-				Doc(v),
-		)
-	}
-	// web
-	for _, v := range list {
-		bulkReq = bulkReq.Add(
-			elastic.NewBulkIndexRequest().
-				Index("web").
-				Id(cast.ToString(v.ID)).
-				Doc(v),
-		)
-	}
-
-	if bulkReq.NumberOfActions() > 0 {
-		if _, err := bulkReq.Do(ctx); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (r repo) InsertSearchAuthorSeed(ctx context.Context, list entity.ESObjectList) error {
+func (r repo) InsertSearchAuthorSeed(list entity.ESObjectList) error {
+	ctx := context.Background()
 	sess := r.ES.Session("store")
 
 	bulkReq := sess.Bulk()

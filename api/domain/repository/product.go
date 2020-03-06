@@ -17,6 +17,5 @@ type Product interface {
 	GetV5PrefixESSearchSuggestion(context.Context, entityreq.ProductSearch) (entity.MultiESObjectList, error)
 	GetV5PartialESSearchSuggestion(context.Context, entityreq.ProductSearch) (entity.MultiESObjectList, error)
 	GetV5PrefixAndPartialESSearchSuggestion(context.Context, entityreq.ProductSearch) (entity.MultiESObjectList, error)
-	InsertSearchSeed(context.Context, entity.ESProductList) error
-	InsertSearchAuthorSeed(context.Context, entity.ESObjectList) error
+	InsertSearchAuthorSeed(entity.ESObjectList) error
 }

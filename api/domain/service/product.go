@@ -9,5 +9,5 @@ import (
 type Product interface {
 	GetSearch(context.Context, entityreq.ProductSearch) (interface{}, error)
 	GetSearchSuggestion(context.Context, entityreq.ProductSearch) (interface{}, error)
-	InsertSearchSeed(context.Context) error
+	InsertSearchSeed() error
 }

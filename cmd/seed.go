@@ -32,7 +32,7 @@ func insertSeed(_ *cobra.Command, _ []string) {
 			func(lc fx.Lifecycle, s *registry.Services) error {
 				lc.Append(fx.Hook{
 					OnStart: func(ctx context.Context) error {
-						return s.Product.InsertSearchSeed(ctx)
+						return s.Product.InsertSearchSeed()
 					},
 				})
 				return nil

@@ -1,7 +1,6 @@
 package product
 
 import (
-	"context"
 	"encoding/json"
 	"io/ioutil"
 	"os"
@@ -10,7 +9,7 @@ import (
 	"github.com/jiro94/elasticsearch-sample/api/domain/entity"
 )
 
-func (s serv) InsertSearchSeed(ctx context.Context) error {
+func (s serv) InsertSearchSeed() error {
 	titles, err := getSeedObjects(path.Join(seedBasePath, productsSeedFileName))
 	if err != nil {
 		return err
@@ -44,39 +43,22 @@ func (s serv) InsertSearchSeed(ctx context.Context) error {
 	var (
 		start int
 		end   int
-		limit = 1000
-		count = 1
+		limit = 200
 	)
-	//for {
-	//	end += start + (count * limit)
-	//	if len(products) > end {
-	//		if err := s.repo.InsertSearchSeed(ctx, products[start:end]); err != nil {
-	//			return err
-	//		}
-	//	} else {
-	//		if err := s.repo.InsertSearchSeed(ctx, products[start:]); err != nil {
-	//			return err
-	//		}
-	//		break
-	//	}
-	//	start = end
-	//	count++
-	//}
 
 	for {
-		end += start + (count * limit)
+		end += start + limit
 		if len(authors) > end {
-			if err := s.repo.InsertSearchAuthorSeed(ctx, authors[start:end]); err != nil {
+			if err := s.repo.InsertSearchAuthorSeed(authors[start:end]); err != nil {
 				return err
 			}
 		} else {
-			if err := s.repo.InsertSearchAuthorSeed(ctx, authors[start:]); err != nil {
+			if err := s.repo.InsertSearchAuthorSeed(authors[start:]); err != nil {
 				return err
 			}
 			break
 		}
 		start = end
-		count++
 	}
 
 	return nil
